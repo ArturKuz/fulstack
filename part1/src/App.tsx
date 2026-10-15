@@ -1,69 +1,86 @@
-interface PartProps {
-  name: string,
-  exercises: number
+import { useState } from 'react'
+
+interface ButtonProps {
+  text: string;
+  handleClick: () => void;
 }
 
-interface HeaderProps {
-  course: string
+interface StatisticLineProps {
+  text: string;
+  value: number | string;
 }
 
-interface TotalProps {
-  exercises: number[]
+interface StatisticsProps {
+  good: number;
+  neutral: number;
+  bad: number;
+  all: number;
+  average: number;
+  positive: number;
 }
 
-interface Course {
-  name: string,
-  parts: PartProps[]
+const StatisticLine = (props: StatisticLineProps) => {
+  return(
+    <tr>
+      <td>{props.text}</td>
+      <td>{props.value}</td>
+    </tr>
+  )
+}
+
+const Button = (props: ButtonProps) => {
+  return(
+    <button onClick={props.handleClick}>
+      {props.text}
+    </button>
+  )
+}
+
+const Statistics = ({ good, neutral, bad, all, average, positive }: StatisticsProps) => {
+  if (all === 0) {
+    return (
+      <>
+        <p>No feedback given</p>
+      </>
+    )
+  }
+
+  return (
+    <table>
+      <tbody>
+        <StatisticLine text="good" value={good} />
+        <StatisticLine text="neutral" value={neutral} />
+        <StatisticLine text="bad" value={bad} />
+        <StatisticLine text="all" value={all} />
+        <StatisticLine text="average" value={average} />
+        <StatisticLine text="positive" value={positive + '%'} />
+      </tbody>
+    </table>
+  )
 }
 
 const App = () => {
-  const course: Course = {
-    name: 'Half Stack application development',
-    parts: [
-      {
-        name: 'Fundamentals of React',
-        exercises: 10
-      },
-      {
-        name: 'Using props to pass data',
-        exercises: 7
-      },
-      {
-        name: 'State of a component',
-        exercises: 14
-      }
-    ]
-  }
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
 
+  const all: number = good + neutral + bad;
+  const average: number = (good - bad) / all;
+  const positive: number = (good / all) * 100;
 
-  const Header = (props: HeaderProps) => (
-    <h1>{props.course}</h1>
-  )
-
-  const Part = (props: PartProps) =>  (
-    <p>
-      {props.name} {props.exercises}
-    </p>
-  )
-
-  const Content = (props: { parts: PartProps[] }) => (
-    <>
-      {props.parts.map((item: PartProps) => (
-        <Part name={item.name} exercises={item.exercises} />
-      ))}
-    </>
-  )
-
-  const Total = (props: TotalProps) =>  (
-    <p>Number of exercises {props.exercises.reduce((sum, current) => sum + current, 0)}</p>
-  )
+  const handleGoodClick: () => void = () => setGood(good + 1);
+  const handleNeutralClick: () => void = () => setNeutral(neutral + 1);
+  const handleBadClick: () => void = () => setBad(bad + 1);
 
   return (
-    <div>
-      <Header course={course.name} />
-      <Content parts={course.parts} />
-      <Total exercises={course.parts.map((part) => part.exercises)} />
-    </div>
+    <>
+      <h1>give feedback</h1>
+      <Button text="good" handleClick={handleGoodClick} />
+      <Button text="neutral" handleClick={handleNeutralClick} />
+      <Button text="bad" handleClick={handleBadClick} />
+      <h1>statistics</h1>
+      <Statistics good={good} neutral={neutral} bad={bad} all={all} average={average} positive={positive} />
+    </>
   )
 }
 
