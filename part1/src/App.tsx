@@ -1,5 +1,5 @@
 interface PartProps {
-  part: string,
+  name: string,
   exercises: number
 }
 
@@ -11,49 +11,58 @@ interface TotalProps {
   exercises: number[]
 }
 
-
-const Header = (props: HeaderProps) => (
-  <h1>{props.course}</h1>
-)
-
-const Part = (props: PartProps) =>  (
-  <p>
-    {props.part} {props.exercises}
-  </p>
-)
-
-const Content = (props: { parts: PartProps[] }) => (
-  <>
-    {props.parts.map((item: PartProps) => (
-      <Part part={item.part} exercises={item.exercises} />
-    ))}
-  </>
-)
-
-const Total = (props: TotalProps) =>  (
-  <p>Number of exercises {props.exercises.reduce((sum, current) => sum + current, 0)}</p>
-)
+interface Course {
+  name: string,
+  parts: PartProps[]
+}
 
 const App = () => {
-  const course = 'Half Stack application development'
-  const part1 = 'Fundamentals of React'
-  const exercises1 = 10
-  const part2 = 'Using props to pass data'
-  const exercises2 = 7
-  const part3 = 'State of a component'
-  const exercises3 = 14
+  const course: Course = {
+    name: 'Half Stack application development',
+    parts: [
+      {
+        name: 'Fundamentals of React',
+        exercises: 10
+      },
+      {
+        name: 'Using props to pass data',
+        exercises: 7
+      },
+      {
+        name: 'State of a component',
+        exercises: 14
+      }
+    ]
+  }
 
-  const parts = [
-    { part: part1, exercises: exercises1 },
-    { part: part2, exercises: exercises2 },
-    { part: part3, exercises: exercises3 }
-  ] 
+
+  const Header = (props: HeaderProps) => (
+    <h1>{props.course}</h1>
+  )
+
+  const Part = (props: PartProps) =>  (
+    <p>
+      {props.name} {props.exercises}
+    </p>
+  )
+
+  const Content = (props: { parts: PartProps[] }) => (
+    <>
+      {props.parts.map((item: PartProps) => (
+        <Part name={item.name} exercises={item.exercises} />
+      ))}
+    </>
+  )
+
+  const Total = (props: TotalProps) =>  (
+    <p>Number of exercises {props.exercises.reduce((sum, current) => sum + current, 0)}</p>
+  )
 
   return (
     <div>
-      <Header course={course} />
-      <Content parts={parts} />
-      <Total exercises={parts.map((part) => part.exercises)} />
+      <Header course={course.name} />
+      <Content parts={course.parts} />
+      <Total exercises={course.parts.map((part) => part.exercises)} />
     </div>
   )
 }
