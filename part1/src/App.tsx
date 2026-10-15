@@ -1,85 +1,53 @@
 import { useState } from 'react'
 
-interface ButtonProps {
-  text: string;
-  handleClick: () => void;
-}
+const anecdotes: string[] = [
+  'If it hurts, do it more often.',
+  'Adding manpower to a late software project makes it later!',
+  'The first 90 percent of the code accounts for the first 90 percent of the development time...The remaining 10 percent of the code accounts for the other 90 percent of the development time.',
+  'Any fool can write code that a computer can understand. Good programmers write code that humans can understand.',
+  'Premature optimization is the root of all evil.',
+  'Debugging is twice as hard as writing the code in the first place. Therefore, if you write the code as cleverly as possible, you are, by definition, not smart enough to debug it.',
+  'Programming without an extremely heavy use of console.log is same as if a doctor would refuse to use x-rays or blood tests when diagnosing patients.',
+  'The only way to go fast, is to go well.'
+]
 
-interface StatisticLineProps {
-  text: string;
-  value: number | string;
-}
 
-interface StatisticsProps {
-  good: number;
-  neutral: number;
-  bad: number;
-  all: number;
-  average: number;
-  positive: number;
-}
 
-const StatisticLine = (props: StatisticLineProps) => {
-  return(
-    <tr>
-      <td>{props.text}</td>
-      <td>{props.value}</td>
-    </tr>
-  )
-}
+const App = () => {
+  const [selected, setSelected] = useState(0)
+  const [votes, setVotes] = useState(Array(anecdotes.length).fill(0))
 
-const Button = (props: ButtonProps) => {
-  return(
-    <button onClick={props.handleClick}>
-      {props.text}
-    </button>
-  )
-}
+  const getRandomAnecdote = () => {
+    const randomIndex = Math.floor(Math.random() * anecdotes.length)
+    setSelected(randomIndex)
+  }
 
-const Statistics = ({ good, neutral, bad, all, average, positive }: StatisticsProps) => {
-  if (all === 0) {
-    return (
-      <>
-        <p>No feedback given</p>
-      </>
-    )
+  const handleVoteClick = () => {
+    const copy = [...votes]
+    copy[selected] += 1
+    setVotes(copy)
   }
 
   return (
-    <table>
-      <tbody>
-        <StatisticLine text="good" value={good} />
-        <StatisticLine text="neutral" value={neutral} />
-        <StatisticLine text="bad" value={bad} />
-        <StatisticLine text="all" value={all} />
-        <StatisticLine text="average" value={average} />
-        <StatisticLine text="positive" value={positive + '%'} />
-      </tbody>
-    </table>
-  )
-}
-
-const App = () => {
-  const [good, setGood] = useState(0);
-  const [neutral, setNeutral] = useState(0);
-  const [bad, setBad] = useState(0);
-
-  const all: number = good + neutral + bad;
-  const average: number = (good - bad) / all;
-  const positive: number = (good / all) * 100;
-
-  const handleGoodClick: () => void = () => setGood(good + 1);
-  const handleNeutralClick: () => void = () => setNeutral(neutral + 1);
-  const handleBadClick: () => void = () => setBad(bad + 1);
-
-  return (
     <>
-      <h1>give feedback</h1>
-      <Button text="good" handleClick={handleGoodClick} />
-      <Button text="neutral" handleClick={handleNeutralClick} />
-      <Button text="bad" handleClick={handleBadClick} />
-      <h1>statistics</h1>
-      <Statistics good={good} neutral={neutral} bad={bad} all={all} average={average} positive={positive} />
+      <h1>Anecdote of the day</h1>
+      {anecdotes[selected]}
+      <p>has {votes[selected]} votes</p>
+      <button onClick={handleVoteClick}>vote</button>
+      <button onClick={getRandomAnecdote}>next anecdote</button>
+
+      {Math.max(...votes) === 0 ? (
+        <>
+          <h1>Anecdote with most votes</h1>
+          <p>No votes yet</p>
+        </>
+      ) : (
+        <>
+          <h1>Anecdote with most votes</h1>
+          {anecdotes[votes.indexOf(Math.max(...votes))]}
+          <p>has {Math.max(...votes)} votes</p>
+        </>
+      )}
     </>
   )
 }
