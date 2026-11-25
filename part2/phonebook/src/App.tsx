@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
+import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 import type { Person } from './models'
-import Filter from './components/Filter'
-import axios from 'axios'
+import personsService from './services/persons'
 
 const App = () => {
   const [persons, setPersons] = useState<Person[]>([]) 
@@ -28,38 +28,86 @@ const App = () => {
 
   const addContact = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
+    
+    const existingPerson: Person | undefined = checkIfContactExists(newName)
 
-    if (checkIfContactExists(newName)) {
-      alert(`${newName} is already added to phonebook`)
+    if (existingPerson) {
+      askToUpdatePerson(existingPerson)
       return
     }
 
     savePerson({ name: newName, number: newNumber })
   }
 
-  const checkIfContactExists = (name: string) => {    
-    return persons.some(person => person?.name === name)
+  const askToUpdatePerson = (existingPerson: Person) => {
+    const confirmResult = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
+    if (confirmResult) {
+      const updatedPerson = { ...existingPerson, number: newNumber }
+      updatePerson(existingPerson.id, updatedPerson)
+    }
   }
 
-  const savePerson = ({ name, number }: Omit<Person, 'id'>) => {
-    const personObject = {
-      name: name,
-      number: number,
-      id: persons.length + 1
-    }
+  const checkIfContactExists = (name: string): Person | undefined => {    
+    return persons.find(person => person.name === name)
+  }
 
-    setPersons(persons.concat(personObject))
+  const updatePerson = (id: number, updatedPerson: Omit<Person, 'id'>) => {
+    personsService
+      .update(id, updatedPerson)
+      .then((response: Person): void => {
+        setPersons(persons.map(person => person.id !== id ? person : response))
+        resetForm()
+      })
+      .catch((error: Error) => {
+        console.error(error)
+      })
+  }
+
+  const createPerson = (personObject: Omit<Person, 'id'>) => {
+    personsService
+      .create(personObject)
+      .then((response: Person): void => {
+        setPersons(persons.concat(response))
+        resetForm()
+      })
+      .catch((error: Error) => {
+        console.error(error)
+      })
+  }
+
+  const resetForm = () => {
     setNewName('')
     setNewNumber('')
   }
 
+  const savePerson = ({ name, number }: Omit<Person, 'id'>) => {
+    const personObject: Omit<Person, 'id'> = {
+      name: name,
+      number: number,
+    }
+
+    createPerson(personObject)
+  }
+
+  const removePerson = (id: number) => {
+    personsService
+      .remove(id)
+      .then(() => {
+        setPersons(persons.filter(person => person.id !== id))
+      })
+      .catch((error: Error) => {
+        console.error(error)
+      })
+  }
+
   const hook = () => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3003/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setPersons(persons.concat(response.data))
+    personsService
+      .getAll()
+      .then((response: Person[]): void => {
+        setPersons(persons.concat(response))
+      })
+      .catch((error: Error) => {
+        console.error(error)
       })
   }
 
@@ -81,7 +129,7 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h3>Numbers</h3>
-      <Persons persons={filteredPersons} />
+      <Persons persons={filteredPersons} removePerson={removePerson} />
     </div>
   )
 }
